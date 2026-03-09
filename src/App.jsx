@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { pinyin } from "pinyin-pro";
 
 const COURSE_DATA = {
   title: "线束中文课程",
@@ -332,6 +333,37 @@ export default function App() {
       )
     : false;
 
+  const pinyinCache = {};
+  const getCachedPinyin = (text) => {
+    if (!pinyinCache[text]) {
+      pinyinCache[text] = pinyin(text, { type: "array" });
+    }
+    return pinyinCache[text];
+  };
+
+  const renderWithPinyin = (text) => {
+    const chineseRegex = /([\u4e00-\u9fff\u3400-\u4dbf]+)/g;
+    const parts = text.split(chineseRegex);
+    return parts.map((part, i) => {
+      if (/^[\u4e00-\u9fff\u3400-\u4dbf]+$/.test(part)) {
+        const pinyinArray = getCachedPinyin(part);
+        return (
+          <span key={i}>
+            {part.split("").map((char, j) => (
+              <ruby key={j}>
+                {char}
+                <rp>(</rp>
+                <rt>{pinyinArray[j]}</rt>
+                <rp>)</rp>
+              </ruby>
+            ))}
+          </span>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
   const highlightTech = (text) => {
     const techTerms = [
       "wire harness", "wire", "cable", "connector", "terminal", "crimping",
@@ -356,7 +388,7 @@ export default function App() {
           {part}
         </span>
       ) : (
-        <span key={i}>{part}</span>
+        <span key={i}>{renderWithPinyin(part)}</span>
       );
     });
   };
@@ -383,7 +415,7 @@ export default function App() {
                 color: colors.accent,
               }}
             >
-              {COURSE_DATA.title}
+              {renderWithPinyin(COURSE_DATA.title)}
             </h1>
             <p style={{ fontSize: 15, color: colors.textDim, margin: 0 }}>
               {COURSE_DATA.subtitle}
@@ -464,7 +496,7 @@ export default function App() {
                   {m.id}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 16, fontWeight: 600 }}>{m.title}</div>
+                  <div style={{ fontSize: 16, fontWeight: 600 }}>{renderWithPinyin(m.title)}</div>
                   <div style={{ fontSize: 13, color: colors.textDim }}>
                     {m.titleEn}
                   </div>
@@ -557,7 +589,7 @@ export default function App() {
             ← 课程
           </button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{mod.title}</div>
+            <div style={{ fontSize: 18, fontWeight: 700 }}>{renderWithPinyin(mod.title)}</div>
             <div style={{ fontSize: 13, color: colors.textDim }}>
               {mod.titleEn}
             </div>
@@ -573,7 +605,7 @@ export default function App() {
             border: `1px solid ${colors.border}`,
           }}
         >
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.8 }}>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 2.4 }}>
             {highlightTech(mod.intro)}
           </p>
           <p
@@ -676,7 +708,7 @@ export default function App() {
                         <div
                           style={{
                             fontSize: 14,
-                            lineHeight: 1.8,
+                            lineHeight: 2.4,
                             marginBottom: 4,
                           }}
                         >
@@ -703,7 +735,7 @@ export default function App() {
                 borderRadius: 12,
                 padding: 20,
                 border: `1px solid ${colors.border}`,
-                lineHeight: 2.2,
+                lineHeight: 2.6,
                 fontSize: 15,
               }}
             >
@@ -785,7 +817,7 @@ export default function App() {
                   <div
                     style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}
                   >
-                    {qIdx + 1}. {q.q}
+                    {qIdx + 1}. {renderWithPinyin(q.q)}
                   </div>
                   <div
                     style={{
@@ -833,7 +865,7 @@ export default function App() {
                             fontSize: 14,
                           }}
                         >
-                          {opt}
+                          {renderWithPinyin(opt)}
                           {answered && oIdx === q.answer && " ✓"}
                           {answered &&
                             oIdx === userAnswer &&
